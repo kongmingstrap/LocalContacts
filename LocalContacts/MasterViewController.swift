@@ -2,21 +2,35 @@
 //  MasterViewController.swift
 //  LocalContacts
 //
-//  Created by Takaaki Tanaka on 2015/10/01.
-//  Copyright © 2015年 Takaaki Tanaka. All rights reserved.
-//
 
 import UIKit
 import CoreData
+//import NSXMLParser
 
-class MasterViewController: UITableViewController, NSFetchedResultsControllerDelegate {
+class MasterViewController: UITableViewController, NSFetchedResultsControllerDelegate, NSXMLParserDelegate {
 
     var detailViewController: DetailViewController? = nil
     var managedObjectContext: NSManagedObjectContext? = nil
 
+    var contacts: Array<AnyObject>? = nil
+    var personInfo: [String : String]? = nil
+    var personInfoKey: String? = nil
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let bundle = NSBundle.mainBundle()
+        
+        let url = bundle.URLForResource("personal_infomation", withExtension: "xml")!
+        
+    
+        let parser = NSXMLParser(contentsOfURL: url)
+      
+        
+        parser?.delegate = self
+        
+        parser!.parse()
+        
         // Do any additional setup after loading the view, typically from a nib.
         self.navigationItem.leftBarButtonItem = self.editButtonItem()
 
@@ -115,6 +129,60 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         cell.textLabel!.text = object.valueForKey("timeStamp")!.description
     }
 
+    // MARK: - XML Parser
+    
+    var isParsing = false
+    
+    // XMLのパース開始
+    func parserDidStartDocument(parser: NSXMLParser) {
+        //NSLog("parserDidStartDocument \(parser)")
+        self.contacts = []
+        self.isParsing = true
+    }
+    
+    func parserDidEndDocument(parser: NSXMLParser) {
+        //NSLog("parserDidEndDocument \(parser)")
+        NSLog("parserDidEndDocument: \(self.contacts)")
+        self.isParsing = false
+    }
+
+    
+    func parser(parser: NSXMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String]) {
+
+        //NSLog("didStartElement \(elementName), \(namespaceURI), \(qName), \(attributeDict), \(attributeDict)")
+        
+        if elementName == "personal-infomations" {
+            //self.personInfo = [:]
+        } else if elementName == "personal-infomation" {
+            self.personInfo = [:]
+        } else {
+            self.personInfoKey = elementName
+        }
+        
+    }
+    
+    func parser(parser: NSXMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
+        //NSLog("didEndElement \(elementName), \(namespaceURI), \(qName)")
+        
+        if elementName == "personal-infomations" {
+            
+        } else if elementName == "personal-infomation" {
+            let personInfo = self.personInfo!
+            self.contacts?.append(personInfo)
+            
+            self.personInfo = [:]
+        } else {
+            self.personInfoKey = elementName
+        }
+        
+    }
+    
+    
+    func parser(parser: NSXMLParser, foundCharacters: String) {
+        //NSLog("foundCharacters \(parser), \(foundCharacters))")
+        self.personInfo![self.personInfoKey!] = foundCharacters
+    }
+    
     // MARK: - Fetched results controller
 
     var fetchedResultsController: NSFetchedResultsController {

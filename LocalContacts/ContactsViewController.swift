@@ -7,9 +7,14 @@
 //
 
 import UIKit
+//import AddressBookManager
+
+import Contacts
 
 class ContactsViewController: UITableViewController {
 
+    //var addressBookManager: AddressBookManager? = nil;
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -18,6 +23,165 @@ class ContactsViewController: UITableViewController {
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
+        
+        if #available(iOS 9.0, *) {
+            {
+                
+                let contact = CNMutableContact()
+            
+                contact.givenName = "John"
+                contact.familyName = "Appleseed"
+            
+                
+                let mainNumber = CNLabeledValue(label:CNLabelPhoneNumberMain, value:"012-345-6789")
+                let iPhoneNumber = CNLabeledValue(label:CNLabelPhoneNumberiPhone, value:"111-222-3333")
+                contact.phoneNumbers = [mainNumber, iPhoneNumber]
+                
+                
+                
+                let store = CNContactStore()
+                
+                
+                let saveRequest = CNSaveRequest()
+                
+                saveRequest.addContact(contact, toContainerWithIdentifier:nil)
+                do {
+                    try store.executeSaveRequest(saveRequest)
+                } catch {
+                    abort()
+                }
+                
+            }
+            
+            {
+                let identifier = "035218FA-1E6E-4D1C-9708-76FBC0E55F28"
+                
+                
+                let store = CNContactStore()
+                
+                let contact = try store.unifiedContactWithIdentifier(identifier, keysToFetch:[CNContactGivenNameKey, CNContactFamilyNameKey])
+                
+                let mutableContact = contact.mutableCopy() as! CNMutableContact
+                
+                let newEmail = CNLabeledValue(label: CNLabelHome, value: "johnny@example.com")
+                mutableContact.emailAddresses.append(newEmail)
+                
+                let saveRequest = CNSaveRequest()
+                
+                saveRequest.updateContact(mutableContact)
+                
+                do {
+                    try store.executeSaveRequest(saveRequest)
+                } catch {
+                    abort()
+                }
+                
+                
+                    
+            
+            }
+            
+            {
+                let identifier = "035218FA-1E6E-4D1C-9708-76FBC0E55F28"
+                
+                let groupPredicate = CNGroup.predicateForGroupsWithIdentifiers([identifier])
+                
+                
+                
+                let store = CNContactStore()
+                //let group = try store.
+            }
+            
+            
+            
+            
+            {
+                
+                let identifier = "035218FA-1E6E-4D1C-9708-76FBC0E55F28"
+                
+                let store = CNContactStore()
+                
+                let contact = try store.unifiedContactWithIdentifier(identifier, keysToFetch:[CNContactGivenNameKey, CNContactFamilyNameKey])
+                
+                let mutableContact = contact.mutableCopy() as! CNMutableContact
+                
+                let saveRequest = CNSaveRequest()
+                saveRequest.deleteContact(mutableContact)
+
+                do {
+                    try store.executeSaveRequest(saveRequest)
+                } catch {
+                    abort()
+                }
+            }
+            
+            
+            
+            
+            
+            let store = CNContactStore()
+            
+            do {
+                let predicate = CNContact.predicateForContactsMatchingName("Appleseed")
+                
+                let contacts = try store.unifiedContactsMatchingPredicate(predicate, keysToFetch:[CNContactFormatter.descriptorForRequiredKeysForStyle(.FullName),
+                    CNContactPhoneNumbersKey])
+                
+                //let contacts = try store.unifiedContactsMatchingPredicate(predicate, keysToFetch:[CNContactGivenNameKey, CNContactFamilyNameKey, CNContactNamePrefixKey,  CNContactMiddleNameKey, CNContactNameSuffixKey,  CNContactPhoneNumbersKey])
+                
+                let contact = contacts.first
+                
+                print("\(contact!.identifier) \(contact!.givenName) \(contact!.familyName) \(contact!.phoneNumbers)")
+                
+                
+                let keysToFetch = [
+                
+                    CNContactFormatter.descriptorForRequiredKeysForStyle(.FullName),
+                    CNContactPhoneNumbersKey]
+                let contacts = try store.unifiedContactsMatchingPredicate(predicate, keysToFetch:keysToFetch)
+                
+                
+                
+                let contact = contacts.first
+                
+                print("\(contact!.identifier) \(contact!.givenName) \(contact!.familyName) \(contact!.phoneNumbers)")
+                
+                
+                // Checking if phone number is available for the given contact.
+                
+                
+                if contact!.isKeyAvailable(CNContactPhoneNumbersKey) {
+                    
+                    
+                    print("CNContactFamilyNameKey: \(contact!.identifier) \(contact!.givenName) \(contact!.familyName)")
+                } else {
+                    //Refetch the keys
+                    //let keysToFetch = [CNContactGivenNameKey, CNContactFamilyNameKey]
+                    
+                    
+                    //let refetchedContact = try store.unifiedContactWithIdentifier(contact!.identifier, keysToFetch: [CNContactGivenNameKey, CNContactFamilyNameKey])
+                    
+                    
+                    let refetchedContact = try store.unifiedContactWithIdentifier("035218FA-1E6E-4D1C-9708-76FBC0E55F28", keysToFetch:[CNContactGivenNameKey, CNContactFamilyNameKey])
+                    
+                    
+                    print("Refetch: \(refetchedContact.identifier) \(refetchedContact.givenName) \(refetchedContact.familyName)")
+                }
+            } catch {
+                abort()
+            }
+                
+                
+        } else {
+            // Fallback on earlier versions
+        }
+        
+        
+    }
+    
+    override func viewDidAppear(animated: Bool) {
+        super.viewDidAppear(animated)
+        
     }
 
     override func didReceiveMemoryWarning() {
